@@ -5,9 +5,75 @@ A repo to hold Ansible runner examples for the Tektoncd Task `ansible-runner`
 
 ## Common Tasks
 
+### Kubernetes
+
+Create a Namespace:
+
+```shell
+kubectl create ns funstuff
+```
+
+Define the `git-clone` Task:
+
 ```shell
 kubectl apply -f https://raw.githubusercontent.com/tektoncd/catalog/master/task/git-clone/0.1/git-clone.yaml
-kubectl apply -f  https://raw.githubusercontent.com/tektoncd-ansible-runner-example/catalog/master/playbooks-pvc.yaml
+```
+
+Create a PVC:
+
+```yaml
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ansible-playbooks
+  namespace: funstuff
+spec:
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 1Gi
+```
+
+### OpenShift
+
+Create a Project:
+
+```shell
+oc new-project funstuff
+```
+
+In OpenShift 4 the `git-clone` task maybe already predefined as a `clustertask`. Check if it already exists before submitting the above YAML:
+
+```shell
+tkn clustertasks ls
+tkn clustertasks describe git-clone
+```
+
+If the `git-clone` task is not defined:
+
+```shell
+oc apply -f https://raw.githubusercontent.com/tektoncd/catalog/master/task/git-clone/0.1/git-clone.yaml
+```
+
+Create a PVC:
+
+```yaml
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ansible-playbooks
+  namespace: funstuff
+spec:
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 1Gi
 ```
 
 ## Examples
