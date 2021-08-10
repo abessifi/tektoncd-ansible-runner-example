@@ -1,43 +1,9 @@
-# Tektoncd Ansible Runner Examples
+# Tektoncd Ansible Runner Examples on OpenShift
 
 A repo to hold Ansible runner examples for the Tektoncd Task `ansible-runner`
 
 
 ## Common Tasks
-
-### Kubernetes
-
-Create a Namespace:
-
-```shell
-kubectl create ns funstuff
-```
-
-Define the `git-clone` Task:
-
-```shell
-kubectl apply -f https://raw.githubusercontent.com/tektoncd/catalog/master/task/git-clone/0.1/git-clone.yaml
-```
-
-Create a PVC:
-
-```yaml
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: ansible-playbooks
-  namespace: funstuff
-spec:
-  accessModes:
-    - ReadWriteOnce
-  volumeMode: Filesystem
-  resources:
-    requests:
-      storage: 1Gi
-```
-
-### OpenShift
 
 Create a Project:
 
@@ -76,25 +42,58 @@ spec:
       storage: 1Gi
 ```
 
-## Examples
+## Ansible Runner
 
-Run the following Task to clone this repository 
+Create the ansible-runner Task:
 
 ```shell
-tkn task start git-clone \
+oc apply -f https://raw.githubusercontent.com/tektoncd/catalog/main/task/ansible-runner/0.1/ansible-runner.yaml
+```
+
+Verify the created tasks:
+
+```shell
+tkn task ls
+```
+
+## Examples
+
+Do the git clone of the examples repository:
+
+```shell
+tkn clustertask start git-clone \
   --workspace=name=output,claimName=ansible-playbooks \
-  --param=url=https://github.com/kameshsampath/tektoncd-ansible-runner-example \
+  --param=url=https://github.com/abessifi/tektoncd-ansible-runner-example \
   --param=revision=master \
   --param=deleteExisting=true \
   --showlog
 ```
 
-### Service Account
-
-You need proper RBAC in Kubernetes to allow it to perform the example tasks:
+or (if the git-clone is not predefined as a clustertask task):
 
 ```shell
-kubectl apply -f  https://raw.githubusercontent.com/tektoncd-ansible-runner-example/master/kubernetes/ansible-deployer.yaml
+tkn task start git-clone \
+  --workspace=name=output,claimName=ansible-playbooks \
+  --param=url=https://github.com/abessifi/tektoncd-ansible-runner-example \
+  --param=revision=master \
+  --param=deleteExisting=true \
+  --showlog
+```
+
+Check the corresponding `taskrun`:
+
+```shell
+tkn taskrun ls
+```
+
+### Service Account
+
+As we will do get, list and create on the namespace, lets use a service account that has right RBAC:
+
+```shell
+oc apply -f https://raw.githubusercontent.com/tektoncd/catalog/main/task/ansible-runner/0.1/support/ansible-deployer.yaml
+
+oc get sa
 ```
 
 ### Listing pods
